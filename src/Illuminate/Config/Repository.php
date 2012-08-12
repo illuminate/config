@@ -104,6 +104,16 @@ class Repository {
 	 */
 	protected function load($group, $namespace = null)
 	{
+		$collection = $this->getCollection($group, $namespace);
+
+		// If we've already loaded this collection, we will just bail out since we do
+		// not want to load it again. Once items are loaded a first time they will
+		// stay kept in memory within this class and not loaded from disk again.
+		if (isset($this->items[$collection]))
+		{
+			return;
+		}
+
 		$items = array_dot($this->loader->load($group, $namespace));
 
 		$this->items[$collection] = $items;
