@@ -46,6 +46,29 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testLoaderUsesConfigGroupInNamespaceAsDefault()
+	{
+		$config = $this->getRepository();
+		$options = $this->getDummyOptions();
+		$config->getLoader()->shouldReceive('load')->once()->with('config', 'namespace')->andReturn($options);
+		$config->getLoader()->shouldReceive('groupExists')->once()->with('foo', 'namespace')->andReturn(false);
+
+		$this->assertEquals('bar', $config->get('namespace::foo'));
+	}
+
+
+	public function testLoaderUsesGroupWhenItExists()
+	{
+		$config = $this->getRepository();
+		$options = $this->getDummyOptions();
+		$config->getLoader()->shouldReceive('load')->once()->with('foo', 'namespace')->andReturn($options);
+		$config->getLoader()->shouldReceive('groupExists')->once()->with('foo', 'namespace')->andReturn(true);
+
+		$this->assertEquals($options, $config->get('namespace::foo'));
+		$this->assertEquals('bar', $config->get('namespace::foo.foo'));
+	}
+
+
 	protected function getRepository()
 	{
 		return new Illuminate\Config\Repository(m::mock('Illuminate\Config\LoaderInterface'));

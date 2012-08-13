@@ -45,9 +45,9 @@ class Repository {
 	{
 		list($namespace, $group, $item) = $this->parse($key);
 
-		// Configuration items are actually keyed by "collection", which is just a
-		// combination of each namespace and group, which gives a unique way to
-		// identify the array of configuration items for the particular file.
+		// Configuration items are actually keyed by "collection", which is simply a
+		// combination of each namespace and groups, which allows a unique way to
+		// identify the arrays of configuration items for the particular files.
 		$collection = $this->getCollection($group, $namespace);
 
 		$this->load($group, $namespace);
@@ -184,13 +184,13 @@ class Repository {
 		// If the group doesn't exist for the namespace, we'll assume it is the config
 		// group so that any namespaces with just a single configuration file don't
 		// have an awkward extra "config" identifier in each of their items keys.
+		$item = null;
+
 		if (count($segments) == 1)
 		{
-			$item = null;
-
 			if ( ! $this->loader->groupExists($group, $namespace))
 			{
-				$group = 'config';
+				list($item, $group) = array($group, 'config');
 			}
 		}
 
