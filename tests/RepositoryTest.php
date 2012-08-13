@@ -77,6 +77,13 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 
 		$config->set('foo.name', 'taylor');
 		$this->assertEquals('taylor', $config->get('foo.name'));
+
+		$config = $this->getRepository();
+		$options = $this->getDummyOptions();
+		$config->getLoader()->shouldReceive('load')->once()->with('foo', 'namespace')->andReturn(array('name' => 'dayle'));
+
+		$config->set('namespace::foo.name', 'taylor');
+		$this->assertEquals('taylor', $config->get('namespace::foo.name'));
 	}
 
 
