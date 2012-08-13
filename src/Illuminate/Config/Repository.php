@@ -10,6 +10,13 @@ class Repository {
 	protected $loader;
 
 	/**
+	 * The current environment.
+	 *
+	 * @var string
+	 */
+	protected $environment;
+
+	/**
 	 * All of the configuration items.
 	 *
 	 * @var array
@@ -27,11 +34,13 @@ class Repository {
 	 * Create a new configuration repository.
 	 *
 	 * @param  Illuminate\Config\LoaderInterface  $loader
+	 * @param  string  $environment
 	 * @return void
 	 */
-	public function __construct(LoaderInterface $loader)
+	public function __construct(LoaderInterface $loader, $environment)
 	{
 		$this->loader = $loader;
+		$this->environment = $environment;
 	}
 
 	/**
@@ -101,7 +110,7 @@ class Repository {
 			return;
 		}
 
-		$items = $this->loader->load($group, $namespace);
+		$items = $this->loader->get($this->environment, $group, $namespace);
 
 		$this->items[$collection] = $items;
 	}

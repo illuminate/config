@@ -99,7 +99,7 @@ class FileLoader implements LoaderInterface {
 		// namespace. False is returned if no path exists for a namespace.
 		$file = "{$path}/{$group}.php";
 
-		return ! is_null($namespace) and $this->files->exists($file);
+		return ! is_null($path) and $this->files->exists($file);
 	}
 
 	/**
@@ -130,6 +130,16 @@ class FileLoader implements LoaderInterface {
 	public function addNamespaceHint($namespace, $hint)
 	{
 		$this->hints[$namespace] = $hint;
+	}
+
+	/**
+	 * Get the Filesystem instance.
+	 *
+	 * @return Illuminate\Filesystem
+	 */
+	public function getFilesystem()
+	{
+		return $this->files;
 	}
 
 }
