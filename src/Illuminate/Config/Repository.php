@@ -48,24 +48,11 @@ class Repository {
 		// Configuration items are actually keyed by "collection", which is just a
 		// combination of each namespace and group, which gives a unique way to
 		// identify the array of configuration items for the particular file.
-		$this->load($group, $namespace);
-
 		$collection = $this->getCollection($group, $namespace);
 
-		if (is_null($item))
-		{
-			return $this->items[$collection];
-		}
+		$this->load($group, $namespace);
 
-		// After checking to see if we want to return the entire collections we'll
-		// check and see if the individual item is set on the collection array.
-		// If it is, we'll just return it. Otherwise, we return the default.
-		elseif (isset($this->items[$collection][$item]))
-		{
-			return $this->items[$collection][$item];
-		}
-
-		return value($default);
+		return array_get($this->items[$collection], $item, $default);
 	}
 
 	/**
@@ -79,12 +66,12 @@ class Repository {
 	{
 		list($namespace, $group, $item) = $this->parse($key);
 
+		$collection = $this->getCollection($group, $namespace);
+
 		// We'll need to go ahead and lazy load each configuration groups even when
 		// we're just setting a configuration item so that the set item does not
 		// get overwritten if a different item in the group is requested later.
 		$this->load($group, $namespace);
-
-		$collection = $this->getCollection($group, $namespace);
 
 		if (is_null($item))
 		{
@@ -92,7 +79,7 @@ class Repository {
 		}
 		else
 		{
-			$this->items[$collection][$item] = $value;
+			array_set($this->items[$collection], $item, $value);
 		}
 	}
 
@@ -114,7 +101,7 @@ class Repository {
 			return;
 		}
 
-		$items = array_dot($this->loader->load($group, $namespace));
+		$items = $this->loader->load($group, $namespace);
 
 		$this->items[$collection] = $items;
 	}
@@ -228,6 +215,16 @@ class Repository {
 	protected function getCollection($group, $namespace = null)
 	{
 		return $namespace ?: '*'.'::'.$group;
+	}
+
+	/**
+	 * Get the loader implementation.
+	 *
+	 * @return Illuminate\Config\LoaderInterface
+	 */
+	public function getLoader()
+	{
+		return $this->loader;
 	}
 
 	/**
