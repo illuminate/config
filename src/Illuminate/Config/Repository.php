@@ -1,6 +1,8 @@
 <?php namespace Illuminate\Config;
 
-class Repository {
+use ArrayAccess;
+
+class Repository implements ArrayAccess {
 
 	/**
 	 * The loader implementation.
@@ -41,6 +43,19 @@ class Repository {
 	{
 		$this->loader = $loader;
 		$this->environment = $environment;
+	}
+
+	/**
+	 * Determine if the given configuration value exists.
+	 *
+	 * @param  string  $key
+	 * @return bool
+	 */
+	public function has($key)
+	{
+		$default = microtime(true);
+
+		return $this->get($key, $default) != $default;
 	}
 
 	/**
@@ -224,6 +239,50 @@ class Repository {
 	protected function getCollection($group, $namespace = null)
 	{
 		return $namespace ?: '*'.'::'.$group;
+	}
+
+	/**
+	 * Determine if the given configuration option exists.
+	 *
+	 * @param  string  $key
+	 * @return bool
+	 */
+	public function offsetExists($key)
+	{
+		return $this->has($key);
+	}
+
+	/**
+	 * Get a configuration option.
+	 *
+	 * @param  string  $key
+	 * @return bool
+	 */
+	public function offsetGet($key)
+	{
+		return $this->get($key);
+	}
+
+	/**
+	 * Set a configuration option.
+	 *
+	 * @param  string  $key
+	 * @return bool
+	 */
+	public function offsetSet($key, $value)
+	{
+		$this->set($key, $value);
+	}
+
+	/**
+	 * Unset a configuration option.
+	 *
+	 * @param  string  $key
+	 * @return bool
+	 */
+	public function offsetUnset($key)
+	{
+		$this->set($key, null);
 	}
 
 	/**
