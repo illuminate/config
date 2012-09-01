@@ -25,9 +25,9 @@ interface LoaderInterface {
 	 * Add a hint for locating namespaces.
 	 *
 	 * @param  string  $namespace
-	 * @param  string  $hint
+	 * @param  string  $hintPath
 	 * @return void
 	 */
-	public function addNamespaceHint($namespace, $hint);
+	public function addNamespaceHint($namespace, $hintPath);
 
 }
