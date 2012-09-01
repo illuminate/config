@@ -60,7 +60,7 @@ class FileLoader implements LoaderInterface {
 			return $items;
 		}
 
-		// First we'll get the main configuration file for the group. Once we have
+		// First we'll get the main configuration file for the groups. Once we have
 		// that we can check for any environment specific files, which will get
 		// merged on top of the main arrays to make the environments cascade.
 		$file = "{$path}/{$group}.php";
@@ -124,12 +124,12 @@ class FileLoader implements LoaderInterface {
 	 * Add a hint for locating namespaces.
 	 *
 	 * @param  string  $namespace
-	 * @param  string  $hint
+	 * @param  string  $hintPath
 	 * @return void
 	 */
-	public function addNamespaceHint($namespace, $hint)
+	public function addNamespaceHint($namespace, $hintPath)
 	{
-		$this->hints[$namespace] = $hint;
+		$this->hints[$namespace] = $hintPath;
 	}
 
 	/**
