@@ -242,6 +242,18 @@ class Repository implements ArrayAccess {
 	}
 
 	/**
+	 * Add a new named path to the loader.
+	 *
+	 * @param  string  $name
+	 * @param  string  $path
+	 * @return void
+	 */
+	public function addNamedPath($name, $path)
+	{
+		return $this->loader->addNamedPath($name, $path);
+	}
+
+	/**
 	 * Determine if the given configuration option exists.
 	 *
 	 * @param  string  $key
