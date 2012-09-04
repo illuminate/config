@@ -19,7 +19,7 @@ class FileLoader implements LoaderInterface {
 	protected $defaultPath;
 
 	/**
-	 * All of the namespace hints.
+	 * All of the named path hints.
 	 *
 	 * @var array
 	 */
@@ -121,15 +121,15 @@ class FileLoader implements LoaderInterface {
 	}
 
 	/**
-	 * Add a hint for locating namespaces.
+	 * Add a new named path to the loader.
 	 *
-	 * @param  string  $namespace
-	 * @param  string  $hintPath
+	 * @param  string  $name
+	 * @param  string  $path
 	 * @return void
 	 */
-	public function addNamespaceHint($namespace, $hintPath)
+	public function addNamedPath($name, $path)
 	{
-		$this->hints[$namespace] = $hintPath;
+		$this->hints[$name] = $path;
 	}
 
 	/**

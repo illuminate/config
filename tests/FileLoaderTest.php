@@ -53,7 +53,7 @@ class FileLoaderTest extends PHPUnit_Framework_TestCase {
 	public function testGroupExistsReturnsTrueWhenNamespaceGroupExists()
 	{
 		$loader = $this->getLoader();
-		$loader->addNamespaceHint('namespace', __DIR__.'/namespace');
+		$loader->addNamedPath('namespace', __DIR__.'/namespace');
 		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/namespace/app.php')->andReturn(true);
 		$this->assertTrue($loader->groupExists('app', 'namespace'));
 	}
@@ -69,7 +69,7 @@ class FileLoaderTest extends PHPUnit_Framework_TestCase {
 	public function testGroupExistsReturnsFalseWhenNamespaceGroupDoesntExists()
 	{
 		$loader = $this->getLoader();
-		$loader->addNamespaceHint('namespace', __DIR__.'/namespace');
+		$loader->addNamedPath('namespace', __DIR__.'/namespace');
 		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/namespace/app.php')->andReturn(false);
 		$this->assertFalse($loader->groupExists('app', 'namespace'));
 	}

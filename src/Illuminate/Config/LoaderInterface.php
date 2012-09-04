@@ -22,12 +22,12 @@ interface LoaderInterface {
 	public function groupExists($group, $namespace = null);
 
 	/**
-	 * Add a hint for locating namespaces.
+	 * Add a new named path to the loader.
 	 *
-	 * @param  string  $namespace
-	 * @param  string  $hintPath
+	 * @param  string  $name
+	 * @param  string  $path
 	 * @return void
 	 */
-	public function addNamespaceHint($namespace, $hintPath);
+	public function addNamedPath($name, $path);
 
 }
