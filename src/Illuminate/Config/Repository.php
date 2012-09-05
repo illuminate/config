@@ -1,8 +1,9 @@
 <?php namespace Illuminate\Config;
 
 use ArrayAccess;
+use Illuminate\Support\NamespacedItemResolver;
 
-class Repository implements ArrayAccess {
+class Repository extends NamespacedItemResolver implements ArrayAccess {
 
 	/**
 	 * The loader implementation.
@@ -24,13 +25,6 @@ class Repository implements ArrayAccess {
 	 * @var array
 	 */
 	protected $items = array();
-
-	/**
-	 * An array of parsed key values.
-	 *
-	 * @var array
-	 */
-	protected $parsed = array();
 
 	/**
 	 * Create a new configuration repository.
@@ -67,7 +61,7 @@ class Repository implements ArrayAccess {
 	 */
 	public function get($key, $default = null)
 	{
-		list($namespace, $group, $item) = $this->parse($key);
+		list($namespace, $group, $item) = $this->parseKey($key);
 
 		// Configuration items are actually keyed by "collection", which is simply a
 		// combination of each namespace and groups, which allows a unique way to
@@ -88,7 +82,7 @@ class Repository implements ArrayAccess {
 	 */
 	public function set($key, $value)
 	{
-		list($namespace, $group, $item) = $this->parse($key);
+		list($namespace, $group, $item) = $this->parseKey($key);
 
 		$collection = $this->getCollection($group, $namespace);
 
@@ -128,71 +122,6 @@ class Repository implements ArrayAccess {
 		$items = $this->loader->load($this->environment, $group, $namespace);
 
 		$this->items[$collection] = $items;
-	}
-
-	/**
-	 * Parse a key into namespace, group, and item.
-	 *
-	 * @param  string  $key
-	 * @return array
-	 */
-	protected function parse($key)
-	{
-		// If we've already parsed the given key, we'll return the cached version we
-		// already have, as this will save us some processing. We cache off every
-		// key we parse so we can quickly return it on all subsequent requests.
-		if (isset($this->parsed[$key]))
-		{
-			return $this->parsed[$key];
-		}
-
-		$segments = explode('.', $key);
-
-		// If the key does not contain a double colon, it means the key is not in a
-		// namespace, and is just a regular configuration item. Namespaces are a
-		// tool for organizing configuration items for things such as modules.
-		if ( ! str_contains($key, '::'))
-		{
-			$parsed = $this->parseBasicSegments($segments);
-		}
-		else
-		{
-			$parsed = $this->parseNamespacedSegments($segments);
-		}
-
-		// Once we have the parsed array of this key's elements, such as its groups
-		// and namespace, we will cache each array inside a simple list that has
-		// the key and the parsed array for quick look-ups for later requests.
-		return $this->parsed[$key] = $parsed;
-	}
-
-	/**
-	 * Parse an array of basic segments.
-	 *
-	 * @param  array  $segments
-	 * @return array
-	 */
-	protected function parseBasicSegments(array $segments)
-	{
-		// The first segment in a basic array will always be the group, so we can go
-		// ahead and grab that segment. If there is only one total segment we are
-		// just pulling an entire group out of the array and not a single item.
-		$group = $segments[0];
-
-		if (count($segments) == 1)
-		{
-			return array(null, $group, null);
-		}
-
-		// If there is more than one segment in the group, ite means we are pulling
-		// a specific item out of a groups and will need to return the item name
-		// as well as the group so we know which item to pull from the arrays.
-		else
-		{
-			$item = implode('.', array_slice($segments, 1));
-
-			return array(null, $group, $item);
-		}
 	}
 
 	/**
