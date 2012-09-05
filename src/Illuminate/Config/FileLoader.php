@@ -46,7 +46,7 @@ class FileLoader implements LoaderInterface {
 	 * @param  string  $namespace
 	 * @return array
 	 */
-	public function get($environment, $group, $namespace = null)
+	public function load($environment, $group, $namespace = null)
 	{
 		$items = array();
 
@@ -90,7 +90,7 @@ class FileLoader implements LoaderInterface {
 	 * @param  string  $namespace
 	 * @return bool
 	 */
-	public function groupExists($group, $namespace = null)
+	public function exists($group, $namespace = null)
 	{
 		$path = $this->getPath($namespace);
 
@@ -121,15 +121,15 @@ class FileLoader implements LoaderInterface {
 	}
 
 	/**
-	 * Add a new named path to the loader.
+	 * Add a new namespace to the loader.
 	 *
-	 * @param  string  $name
-	 * @param  string  $path
+	 * @param  string  $namespace
+	 * @param  string  $hint
 	 * @return void
 	 */
-	public function addNamedPath($name, $path)
+	public function addNamespace($namespace, $hint)
 	{
-		$this->hints[$name] = $path;
+		$this->hints[$namespace] = $hint;
 	}
 
 	/**

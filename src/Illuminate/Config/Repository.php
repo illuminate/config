@@ -74,7 +74,7 @@ class Repository implements ArrayAccess {
 		// identify the arrays of configuration items for the particular files.
 		$collection = $this->getCollection($group, $namespace);
 
-		$this->load($group, $namespace);
+		$this->load($group, $namespace, $collection);
 
 		return array_get($this->items[$collection], $item, $default);
 	}
@@ -95,7 +95,7 @@ class Repository implements ArrayAccess {
 		// We'll need to go ahead and lazy load each configuration groups even when
 		// we're just setting a configuration item so that the set item does not
 		// get overwritten if a different item in the group is requested later.
-		$this->load($group, $namespace);
+		$this->load($group, $namespace, $collection);
 
 		if (is_null($item))
 		{
@@ -111,12 +111,12 @@ class Repository implements ArrayAccess {
 	 * Load the configuration group for the key.
 	 *
 	 * @param  string  $key
+	 * @param  string  $namespace
+	 * @param  string  $collection
 	 * @return void
 	 */
-	protected function load($group, $namespace = null)
+	protected function load($group, $namespace, $collection)
 	{
-		$collection = $this->getCollection($group, $namespace);
-
 		// If we've already loaded this collection, we will just bail out since we do
 		// not want to load it again. Once items are loaded a first time they will
 		// stay kept in memory within this class and not loaded from disk again.
@@ -125,7 +125,7 @@ class Repository implements ArrayAccess {
 			return;
 		}
 
-		$items = $this->loader->get($this->environment, $group, $namespace);
+		$items = $this->loader->load($this->environment, $group, $namespace);
 
 		$this->items[$collection] = $items;
 	}
@@ -210,23 +210,33 @@ class Repository implements ArrayAccess {
 		// have an awkward extra "config" identifier in each of their items keys.
 		$item = null;
 
-		if (count($segments) == 1)
+		if ($this->assumingGroup($segments, $group, $namespace))
 		{
-			if ( ! $this->loader->groupExists($group, $namespace))
-			{
-				list($item, $group) = array($group, 'config');
-			}
+			list($item, $group) = array($group, 'config');
 		}
 
-		// If there is more than one segment the item should just be all the segments
-		// after the first one concatenated. The first segments just contains only
-		// the namespace and the group, while the rest of the key holds an item.
-		else
+		// If there is more than one segment, this means we have all three segments in
+		// the key so we will concatenate all of the segments after the first which
+		// has the group and the namespace, giving the configuration item's name.
+		elseif (count($segments) > 1)
 		{
 			$item = implode('.', array_slice($segments, 1));
 		}
 
 		return array($namespace, $group, $item);
+	}
+
+	/**
+	 * Determine if we should be assuming the configuration group.
+	 *
+	 * @param  array   $segments
+	 * @param  string  $group
+	 * @param  string  $namespace
+	 * @return bool
+	 */
+	protected function assumingGroup($segments, $group, $namespace)
+	{
+		return count($segments) == 1 and ! $this->loader->exists($group, $namespace);
 	}
 
 	/**
@@ -242,15 +252,15 @@ class Repository implements ArrayAccess {
 	}
 
 	/**
-	 * Add a new named path to the loader.
+	 * Add a new namespace to the loader.
 	 *
-	 * @param  string  $name
-	 * @param  string  $path
+	 * @param  string  $namespace
+	 * @param  string  $hint
 	 * @return void
 	 */
-	public function addNamedPath($name, $path)
+	public function addNamespace($namespace, $hint)
 	{
-		return $this->loader->addNamedPath($name, $path);
+		return $this->loader->addNamespace($namespace, $hint);
 	}
 
 	/**

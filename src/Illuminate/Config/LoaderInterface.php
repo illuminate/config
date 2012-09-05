@@ -10,24 +10,24 @@ interface LoaderInterface {
 	 * @param  string  $namespace
 	 * @return array
 	 */
-	public function get($environment, $group, $namespace = null);
+	public function load($environment, $group, $namespace = null);
 
 	/**
-	 * Determine if the given group exists.
+	 * Determine if the given configuration group exists.
 	 *
 	 * @param  string  $group
 	 * @param  string  $namespace
 	 * @return bool
 	 */
-	public function groupExists($group, $namespace = null);
+	public function exists($group, $namespace = null);
 
 	/**
-	 * Add a new named path to the loader.
+	 * Add a new namespace to the loader.
 	 *
-	 * @param  string  $name
-	 * @param  string  $path
+	 * @param  string  $namespace
+	 * @param  string  $hint
 	 * @return void
 	 */
-	public function addNamedPath($name, $path);
+	public function addNamespace($namespace, $hint);
 
 }

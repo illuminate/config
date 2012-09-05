@@ -14,7 +14,7 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 	{
 		$config = $this->getRepository();
 		$options = $this->getDummyOptions();
-		$config->getLoader()->shouldReceive('get')->once()->with('production', 'app', null)->andReturn($options);
+		$config->getLoader()->shouldReceive('load')->once()->with('production', 'app', null)->andReturn($options);
 
 		$this->assertEquals('bar', $config->get('app.foo'));
 		$this->assertEquals('breeze', $config->get('app.baz.boom'));
@@ -27,7 +27,7 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 	{
 		$config = $this->getRepository();
 		$options = $this->getDummyOptions();
-		$config->getLoader()->shouldReceive('get')->once()->with('production', 'app', null)->andReturn($options);
+		$config->getLoader()->shouldReceive('load')->once()->with('production', 'app', null)->andReturn($options);
 
 		$this->assertEquals($options, $config->get('app'));
 	}
@@ -37,7 +37,7 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 	{
 		$config = $this->getRepository();
 		$options = $this->getDummyOptions();
-		$config->getLoader()->shouldReceive('get')->once()->with('production', 'options', 'namespace')->andReturn($options);
+		$config->getLoader()->shouldReceive('load')->once()->with('production', 'options', 'namespace')->andReturn($options);
 
 		$this->assertEquals('bar', $config->get('namespace::options.foo'));
 		$this->assertEquals('breeze', $config->get('namespace::options.baz.boom'));
@@ -50,8 +50,8 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 	{
 		$config = $this->getRepository();
 		$options = $this->getDummyOptions();
-		$config->getLoader()->shouldReceive('get')->once()->with('production', 'config', 'namespace')->andReturn($options);
-		$config->getLoader()->shouldReceive('groupExists')->once()->with('foo', 'namespace')->andReturn(false);
+		$config->getLoader()->shouldReceive('load')->once()->with('production', 'config', 'namespace')->andReturn($options);
+		$config->getLoader()->shouldReceive('exists')->once()->with('foo', 'namespace')->andReturn(false);
 
 		$this->assertEquals('bar', $config->get('namespace::foo'));
 	}
@@ -61,8 +61,8 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 	{
 		$config = $this->getRepository();
 		$options = $this->getDummyOptions();
-		$config->getLoader()->shouldReceive('get')->once()->with('production', 'foo', 'namespace')->andReturn($options);
-		$config->getLoader()->shouldReceive('groupExists')->once()->with('foo', 'namespace')->andReturn(true);
+		$config->getLoader()->shouldReceive('load')->once()->with('production', 'foo', 'namespace')->andReturn($options);
+		$config->getLoader()->shouldReceive('exists')->once()->with('foo', 'namespace')->andReturn(true);
 
 		$this->assertEquals($options, $config->get('namespace::foo'));
 		$this->assertEquals('bar', $config->get('namespace::foo.foo'));
@@ -73,14 +73,14 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 	{
 		$config = $this->getRepository();
 		$options = $this->getDummyOptions();
-		$config->getLoader()->shouldReceive('get')->once()->with('production', 'foo', null)->andReturn(array('name' => 'dayle'));
+		$config->getLoader()->shouldReceive('load')->once()->with('production', 'foo', null)->andReturn(array('name' => 'dayle'));
 
 		$config->set('foo.name', 'taylor');
 		$this->assertEquals('taylor', $config->get('foo.name'));
 
 		$config = $this->getRepository();
 		$options = $this->getDummyOptions();
-		$config->getLoader()->shouldReceive('get')->once()->with('production', 'foo', 'namespace')->andReturn(array('name' => 'dayle'));
+		$config->getLoader()->shouldReceive('load')->once()->with('production', 'foo', 'namespace')->andReturn(array('name' => 'dayle'));
 
 		$config->set('namespace::foo.name', 'taylor');
 		$this->assertEquals('taylor', $config->get('namespace::foo.name'));

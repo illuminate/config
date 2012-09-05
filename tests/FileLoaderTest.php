@@ -13,7 +13,7 @@ class FileLoaderTest extends PHPUnit_Framework_TestCase {
 	public function testEmptyArrayIsReturnedOnNullPath()
 	{
 		$loader = $this->getLoader();
-		$this->assertEquals(array(), $loader->get('local', 'group', 'namespace'));
+		$this->assertEquals(array(), $loader->load('local', 'group', 'namespace'));
 	}
 
 
@@ -23,7 +23,7 @@ class FileLoaderTest extends PHPUnit_Framework_TestCase {
 		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/app.php')->andReturn(true);
 		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/local/app.php')->andReturn(false);
 		$loader->getFilesystem()->shouldReceive('getRequire')->once()->with(__DIR__.'/app.php')->andReturn(array('foo' => 'bar'));
-		$array = $loader->get('local', 'app', null);
+		$array = $loader->load('local', 'app', null);
 
 		$this->assertEquals(array('foo' => 'bar'), $array);
 	}
@@ -36,7 +36,7 @@ class FileLoaderTest extends PHPUnit_Framework_TestCase {
 		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/local/app.php')->andReturn(true);
 		$loader->getFilesystem()->shouldReceive('getRequire')->once()->with(__DIR__.'/app.php')->andReturn(array('foo' => 'bar'));
 		$loader->getFilesystem()->shouldReceive('getRequire')->once()->with(__DIR__.'/local/app.php')->andReturn(array('foo' => 'blah', 'baz' => 'boom'));
-		$array = $loader->get('local', 'app', null);
+		$array = $loader->load('local', 'app', null);
 
 		$this->assertEquals(array('foo' => 'blah', 'baz' => 'boom'), $array);
 	}
@@ -46,32 +46,32 @@ class FileLoaderTest extends PHPUnit_Framework_TestCase {
 	{
 		$loader = $this->getLoader();
 		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/app.php')->andReturn(true);
-		$this->assertTrue($loader->groupExists('app'));
+		$this->assertTrue($loader->exists('app'));
 	}
 
 
 	public function testGroupExistsReturnsTrueWhenNamespaceGroupExists()
 	{
 		$loader = $this->getLoader();
-		$loader->addNamedPath('namespace', __DIR__.'/namespace');
+		$loader->addNamespace('namespace', __DIR__.'/namespace');
 		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/namespace/app.php')->andReturn(true);
-		$this->assertTrue($loader->groupExists('app', 'namespace'));
+		$this->assertTrue($loader->exists('app', 'namespace'));
 	}
 
 
 	public function testGroupExistsReturnsFalseWhenNamespaceHintDoesntExists()
 	{
 		$loader = $this->getLoader();
-		$this->assertFalse($loader->groupExists('app', 'namespace'));
+		$this->assertFalse($loader->exists('app', 'namespace'));
 	}
 
 
 	public function testGroupExistsReturnsFalseWhenNamespaceGroupDoesntExists()
 	{
 		$loader = $this->getLoader();
-		$loader->addNamedPath('namespace', __DIR__.'/namespace');
+		$loader->addNamespace('namespace', __DIR__.'/namespace');
 		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/namespace/app.php')->andReturn(false);
-		$this->assertFalse($loader->groupExists('app', 'namespace'));
+		$this->assertFalse($loader->exists('app', 'namespace'));
 	}
 
 
