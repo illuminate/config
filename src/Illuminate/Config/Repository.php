@@ -134,19 +134,16 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 	{
 		list($namespace, $group) = explode('::', $segments[0]);
 
+		$item = null;
+
 		// If the group doesn't exist for the namespace, we'll assume it is the config
 		// group so that any namespaces with just a single configuration file don't
 		// have an awkward extra "config" identifier in each of their items keys.
-		$item = null;
-
 		if ($this->assumingGroup($segments, $group, $namespace))
 		{
 			list($item, $group) = array($group, 'config');
 		}
 
-		// If there is more than one segment, this means we have all three segments in
-		// the key so we will concatenate all of the segments after the first which
-		// has the group and the namespace, giving the configuration item's name.
 		elseif (count($segments) > 1)
 		{
 			$item = implode('.', array_slice($segments, 1));
