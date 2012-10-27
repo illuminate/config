@@ -80,7 +80,7 @@ class FileLoader implements LoaderInterface {
 			$items = array_merge($items, $this->files->getRequire($file));
 		}
 
-		return array_dot($items);
+		return $items;
 	}
 
 	/**

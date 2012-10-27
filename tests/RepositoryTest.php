@@ -95,7 +95,7 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 
 	protected function getDummyOptions()
 	{
-		return array('foo' => 'bar', 'baz.boom' => 'breeze');
+		return array('foo' => 'bar', 'baz' => array('boom' => 'breeze'));
 	}
 
 }

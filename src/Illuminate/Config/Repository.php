@@ -70,20 +70,7 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 
 		$this->load($group, $namespace, $collection);
 
-		if (is_null($item))
-		{
-			return $this->items[$collection];
-		}
-
-		// If the key is not "null", we will just make sure the items are set in the
-		// configuration array then return it. Otherwise, we will just return the
-		// default value that has been passed into the method as a last resort.
-		elseif (isset($this->items[$collection][$item]))
-		{
-			return $this->items[$collection][$item];
-		}
-
-		return value($default);
+		return array_get($this->items[$collection], $item, $default);
 	}
 
 	/**
@@ -106,11 +93,11 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 
 		if (is_null($item))
 		{
-			$this->items[$collection] = array_dot($value);
+			$this->items[$collection] = $value;
 		}
 		else
 		{
-			$this->items[$collection][$item] = $value;
+			array_set($this->items[$collection], $item, $value);
 		}
 	}
 
