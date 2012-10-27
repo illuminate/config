@@ -70,7 +70,20 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 
 		$this->load($group, $namespace, $collection);
 
-		return array_get($this->items[$collection], $item, $default);
+		if (is_null($item))
+		{
+			return $this->items[$collection];
+		}
+
+		// If the key is not "null", we will just make sure the items are set in the
+		// configuration array then return it. Otherwise, we will just return the
+		// default value that has been passed into the method as a last resort.
+		elseif (isset($this->items[$collection][$item]))
+		{
+			return $this->items[$collection][$item];
+		}
+
+		return value($default);
 	}
 
 	/**
@@ -93,11 +106,11 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 
 		if (is_null($item))
 		{
-			$this->items[$collection] = $value;
+			$this->items[$collection] = array_dot($value);
 		}
 		else
 		{
-			array_set($this->items[$collection], $item, $value);
+			$this->items[$collection][$item] = $value;
 		}
 	}
 
@@ -134,16 +147,19 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 	{
 		list($namespace, $group) = explode('::', $segments[0]);
 
-		$item = null;
-
 		// If the group doesn't exist for the namespace, we'll assume it is the config
 		// group so that any namespaces with just a single configuration file don't
 		// have an awkward extra "config" identifier in each of their items keys.
+		$item = null;
+
 		if ($this->assumingGroup($segments, $group, $namespace))
 		{
 			list($item, $group) = array($group, 'config');
 		}
 
+		// If there is more than one segment, we will just slice off the first element
+		// and combine the rest to get the item name, as it should be the remainder
+		// of the segments after the group and namespace. Then, we'll return all.
 		elseif (count($segments) > 1)
 		{
 			$item = implode('.', array_slice($segments, 1));
