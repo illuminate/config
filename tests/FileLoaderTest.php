@@ -75,6 +75,19 @@ class FileLoaderTest extends PHPUnit_Framework_TestCase {
 	}
 
 
+	public function testCascadingPackagesProperlyLoadsFiles()
+	{
+		$loader = $this->getLoader();
+		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/packages/dayle/rees.php')->andReturn(true);
+		$loader->getFilesystem()->shouldReceive('getRequire')->once()->with(__DIR__.'/packages/dayle/rees.php')->andReturn(array('bar' => 'baz'));
+		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/local/packages/dayle/rees.php')->andReturn(true);
+		$loader->getFilesystem()->shouldReceive('getRequire')->once()->with(__DIR__.'/local/packages/dayle/rees.php')->andReturn(array('foo' => 'boom'));
+		$items = $loader->cascadePackage('local', 'dayle/rees', array('foo' => 'bar'));
+
+		$this->assertEquals(array('foo' => 'boom', 'bar' => 'baz'), $items);
+	}
+
+
 	protected function getLoader()
 	{
 		return new Illuminate\Config\FileLoader(m::mock('Illuminate\Filesystem'), __DIR__);

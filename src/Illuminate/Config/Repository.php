@@ -1,5 +1,6 @@
 <?php namespace Illuminate\Config;
 
+use Closure;
 use ArrayAccess;
 use Illuminate\Support\NamespacedItemResolver;
 
@@ -8,7 +9,7 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 	/**
 	 * The loader implementation.
 	 *
-	 * @var Illuminate\Config\LoaderInterface 
+	 * @var Illuminate\Config\LoaderInterface
 	 */
 	protected $loader;
 
@@ -25,6 +26,13 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 	 * @var array
 	 */
 	protected $items = array();
+
+	/**
+	 * The after load callbacks for namespaces.
+	 *
+	 * @var array
+	 */
+	protected $afterLoad = array();
 
 	/**
 	 * Create a new configuration repository.
@@ -111,6 +119,8 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 	 */
 	protected function load($group, $namespace, $collection)
 	{
+		$env = $this->environment;
+
 		// If we've already loaded this collection, we will just bail out since we do
 		// not want to load it again. Once items are loaded a first time they will
 		// stay kept in memory within this class and not loaded from disk again.
@@ -119,7 +129,17 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 			return;
 		}
 
-		$items = $this->loader->load($this->environment, $group, $namespace);
+		$items = $this->loader->load($env, $group, $namespace);
+
+		// If we've already loaded this collection, we will just bail out since we do
+		// not want to load it again. Once items are loaded a first time they will
+		// stay kept in memory within this class and not loaded from disk again.
+		if (isset($this->afterLoad[$namespace]))
+		{
+			$callback = $this->afterLoad[$namespace];
+
+			$items = call_user_func($callback, $this, $group, $items);
+		}
 
 		$this->items[$collection] = $items;
 	}
@@ -141,7 +161,7 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 
 		if ($this->assumingGroup($segments, $group, $namespace))
 		{
-			list($item, $group) = array($group, 'config');
+			list($item, $group) = array($group, $namespace);
 		}
 
 		// If there is more than one segment, we will just slice off the first element
@@ -153,6 +173,41 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 		}
 
 		return array($namespace, $group, $item);
+	}
+
+	/**
+	 * Register a package for cascading configuration.
+	 *
+	 * @param  string  $name
+	 * @return void
+	 */
+	public function package($name, $path)
+	{
+		list($vendor, $package) = explode('/', $name);
+
+		// First we will simply register the namespace with the repository so that it
+		// can be loaded. Once we have done that we'll register an after namespace
+		// callback so that we can cascade an application package configuration.
+		$this->addNamespace($package, $path);
+
+		$this->afterLoading($package, function($self, $group, $items) use ($name)
+		{
+			$env = $self->getEnvironment();
+
+			return $self->getLoader()->cascadePackage($env, $name, $items);
+		});
+	}
+
+	/**
+	 * Register an after load callback for a given namespace.
+	 *
+	 * @param  string   $namespace
+	 * @param  Closure  $callback
+	 * @return void
+	 */
+	public function afterLoading($namespace, Closure $callback)
+	{
+		$this->afterLoad[$namespace] = $callback;
 	}
 
 	/**
@@ -190,6 +245,46 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 	public function addNamespace($namespace, $hint)
 	{
 		return $this->loader->addNamespace($namespace, $hint);
+	}
+
+	/**
+	 * Get the loader implementation.
+	 *
+	 * @return Illuminate\Config\LoaderInterface
+	 */
+	public function getLoader()
+	{
+		return $this->loader;
+	}
+
+	/**
+	 * Get the current configuration environment.
+	 *
+	 * @return string
+	 */
+	public function getEnvironment()
+	{
+		return $this->environment;
+	}
+
+	/**
+	 * Get the after load callback array.
+	 *
+	 * @return array
+	 */
+	public function getAfterLoadCallbacks()
+	{
+		return $this->afterLoad;
+	}
+
+	/**
+	 * Get all of the configuration items.
+	 *
+	 * @return array
+	 */
+	public function getItems()
+	{
+		return $this->items;
 	}
 
 	/**
@@ -234,26 +329,6 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 	public function offsetUnset($key)
 	{
 		$this->set($key, null);
-	}
-
-	/**
-	 * Get the loader implementation.
-	 *
-	 * @return Illuminate\Config\LoaderInterface
-	 */
-	public function getLoader()
-	{
-		return $this->loader;
-	}
-
-	/**
-	 * Get all of the configuration items.
-	 *
-	 * @return array
-	 */
-	public function getItems()
-	{
-		return $this->items;
 	}
 
 }

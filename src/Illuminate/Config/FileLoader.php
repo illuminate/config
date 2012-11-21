@@ -103,6 +103,41 @@ class FileLoader implements LoaderInterface {
 	}
 
 	/**
+	 * Apply any cascades to an array of package options.
+	 *
+	 * @param  string  $environment
+	 * @param  string  $package
+	 * @param  array   $items
+	 * @return array
+	 */
+	public function cascadePackage($environment, $package, $items)
+	{
+		list($vendor, $package) = explode('/', $package);
+
+		// First we will look for a configuration file in the packages configuration
+		// folder. If it exists, we will load it and merge it with these original
+		// options so that we will easily "cascade" a package's configurations.
+		$file = "packages/{$vendor}/{$package}.php";
+
+		if ($this->files->exists($path = $this->defaultPath.'/'.$file))
+		{
+			$items = array_merge($items, $this->getRequire($path));
+		}
+
+		// Once we have merged the regular package configuration we need to look for
+		// an environment specific configuration file. If one exists, we will get
+		// the contents and merge them on top of this array of options we have.
+		$path = $this->defaultPath."/{$environment}/".$file;
+
+		if ($this->files->exists($path))
+		{
+			$items = array_merge($items, $this->getRequire($path));
+		}
+
+		return $items;
+	}
+
+	/**
 	 * Get the configuration path for a namespace.
 	 *
 	 * @param  string  $namespace
@@ -130,6 +165,17 @@ class FileLoader implements LoaderInterface {
 	public function addNamespace($namespace, $hint)
 	{
 		$this->hints[$namespace] = $hint;
+	}
+
+	/**
+	 * Get a file's contents by requiring it.
+	 *
+	 * @param  string  $path
+	 * @return mixed
+	 */
+	protected function getRequire($path)
+	{
+		return $this->files->getRequire($path);
 	}
 
 	/**

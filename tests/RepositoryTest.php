@@ -46,11 +46,30 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testLoaderUsesConfigGroupInNamespaceAsDefault()
+	public function testPostNamespaceLoadEventIsFired()
 	{
 		$config = $this->getRepository();
 		$options = $this->getDummyOptions();
-		$config->getLoader()->shouldReceive('load')->once()->with('production', 'config', 'namespace')->andReturn($options);
+		$config->getLoader()->shouldReceive('load')->once()->with('production', 'options', 'namespace')->andReturn($options);
+		$config->afterLoading('namespace', function($loader, $group, $items)
+		{
+			$items['dayle'] = 'rees';
+			return $items;
+		});
+
+		$this->assertEquals('bar', $config->get('namespace::options.foo'));
+		$this->assertEquals('breeze', $config->get('namespace::options.baz.boom'));
+		$this->assertEquals('blah', $config->get('namespace::options.code', 'blah'));
+		$this->assertEquals('blah', $config->get('namespace::options.code', function() { return 'blah'; }));
+		$this->assertEquals('rees', $config->get('namespace::options.dayle'));
+	}
+
+
+	public function testLoaderUsesConfigNamespaceInNamespaceAsDefault()
+	{
+		$config = $this->getRepository();
+		$options = $this->getDummyOptions();
+		$config->getLoader()->shouldReceive('load')->once()->with('production', 'namespace', 'namespace')->andReturn($options);
 		$config->getLoader()->shouldReceive('exists')->once()->with('foo', 'namespace')->andReturn(false);
 
 		$this->assertEquals('bar', $config->get('namespace::foo'));
@@ -84,6 +103,19 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 
 		$config->set('namespace::foo.name', 'taylor');
 		$this->assertEquals('taylor', $config->get('namespace::foo.name'));
+	}
+
+
+	public function testPackageRegistersNamespaceAndSetsUpAfterLoadCallback()
+	{
+		$config = $this->getMock('Illuminate\Config\Repository', array('addNamespace'), array(m::mock('Illuminate\Config\LoaderInterface'), 'production'));
+		$config->expects($this->once())->method('addNamespace')->with($this->equalTo('rees'), $this->equalTo(__DIR__));
+		$config->getLoader()->shouldReceive('cascadePackage')->once()->with('production', 'dayle/rees', array('foo'))->andReturn(array('bar'));
+		$config->package('dayle/rees', __DIR__);
+		$afterLoad = $config->getAfterLoadCallbacks();
+		$results = call_user_func($afterLoad['rees'], $config, 'config', array('foo'));
+
+		$this->assertEquals(array('bar'), $results);
 	}
 
 
