@@ -46,12 +46,12 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testPostNamespaceLoadEventIsFired()
+	public function testNamespacedAccessedAndPostNamespaceLoadEventIsFired()
 	{
 		$config = $this->getRepository();
 		$options = $this->getDummyOptions();
 		$config->getLoader()->shouldReceive('load')->once()->with('production', 'options', 'namespace')->andReturn($options);
-		$config->afterLoading('namespace', function($loader, $group, $items)
+		$config->afterLoading('namespace', function($repository, $group, $items)
 		{
 			$items['dayle'] = 'rees';
 			return $items;
@@ -65,26 +65,17 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testLoaderUsesConfigNamespaceInNamespaceAsDefault()
+	public function testLoaderUsesNamespaceAsGroupWhenUsingPackages()
 	{
 		$config = $this->getRepository();
 		$options = $this->getDummyOptions();
+		$config->getLoader()->shouldReceive('addNamespace')->with('namespace', __DIR__);
+		$config->getLoader()->shouldReceive('cascadePackage')->andReturnUsing(function($env, $name, $items) { return $items; });
 		$config->getLoader()->shouldReceive('load')->once()->with('production', 'namespace', 'namespace')->andReturn($options);
-		$config->getLoader()->shouldReceive('exists')->once()->with('foo', 'namespace')->andReturn(false);
 
+		$config->package('foo/namespace', __DIR__);
 		$this->assertEquals('bar', $config->get('namespace::foo'));
-	}
-
-
-	public function testLoaderUsesGroupWhenItExists()
-	{
-		$config = $this->getRepository();
-		$options = $this->getDummyOptions();
-		$config->getLoader()->shouldReceive('load')->once()->with('production', 'foo', 'namespace')->andReturn($options);
-		$config->getLoader()->shouldReceive('exists')->once()->with('foo', 'namespace')->andReturn(true);
-
-		$this->assertEquals($options, $config->get('namespace::foo'));
-		$this->assertEquals('bar', $config->get('namespace::foo.foo'));
+		$this->assertEquals('breeze', $config->get('namespace::baz.boom'));
 	}
 
 

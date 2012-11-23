@@ -28,6 +28,13 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 	protected $items = array();
 
 	/**
+	 * All of the registered packages.
+	 *
+	 * @var array
+	 */
+	protected $packages = array();
+
+	/**
 	 * The after load callbacks for namespaces.
 	 *
 	 * @var array
@@ -136,43 +143,46 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 		// stay kept in memory within this class and not loaded from disk again.
 		if (isset($this->afterLoad[$namespace]))
 		{
-			$callback = $this->afterLoad[$namespace];
-
-			$items = call_user_func($callback, $this, $group, $items);
+			$items = $this->callAfterLoad($namespace, $group, $items);
 		}
 
 		$this->items[$collection] = $items;
 	}
 
 	/**
-	 * Parse an array of namespaced segments.
+	 * Call the after load callback for a namespace.
 	 *
-	 * @param  array  $segments
+	 * @param  string  $namespace
+	 * @param  string  $group
+	 * @param  array   $items
 	 * @return array
 	 */
-	protected function parseNamespacedSegments(array $segments)
+	protected function callAfterLoad($namespace, $group, $items)
 	{
-		list($namespace, $group) = explode('::', $segments[0]);
+		$callback = $this->afterLoad[$namespace];
 
-		// If the group doesn't exist for the namespace, we'll assume it is the config
-		// group so that any namespaces with just a single configuration file don't
-		// have an awkward extra "config" identifier in each of their items keys.
-		$item = null;
+		return call_user_func($callback, $this, $group, $items);
+	}
 
-		if ($this->assumingGroup($segments, $group, $namespace))
+	/**
+	 * Parse an array of namespaced segments.
+	 *
+	 * @param  string  $key
+	 * @return array
+	 */
+	protected function parseNamespacedSegments($key)
+	{
+		list($namespace, $item) = explode('::', $key);
+
+		// If the namespace is registered as a package, we will just assume the group
+		// is equal to the naemspace since all packages cascade in this way having
+		// a single file per package, otherwise we'll just parse them as normal.
+		if (in_array($namespace, $this->packages))
 		{
-			list($item, $group) = array($group, $namespace);
+			return array($namespace, $namespace, $item);
 		}
 
-		// If there is more than one segment, we will just slice off the first element
-		// and combine the rest to get the item name, as it should be the remainder
-		// of the segments after the group and namespace. Then, we'll return all.
-		elseif (count($segments) > 1)
-		{
-			$item = implode('.', array_slice($segments, 1));
-		}
-
-		return array($namespace, $group, $item);
+		return parent::parseNamespacedSegments($key);
 	}
 
 	/**
@@ -185,16 +195,18 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 	{
 		list($vendor, $package) = explode('/', $name);
 
+		$this->packages[] = $package;
+
 		// First we will simply register the namespace with the repository so that it
 		// can be loaded. Once we have done that we'll register an after namespace
 		// callback so that we can cascade an application package configuration.
 		$this->addNamespace($package, $path);
 
-		$this->afterLoading($package, function($self, $group, $items) use ($name)
+		$this->afterLoading($package, function($me, $group, $items) use ($name)
 		{
-			$env = $self->getEnvironment();
+			$env = $me->getEnvironment();
 
-			return $self->getLoader()->cascadePackage($env, $name, $items);
+			return $me->getLoader()->cascadePackage($env, $name, $items);
 		});
 	}
 
@@ -208,19 +220,6 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 	public function afterLoading($namespace, Closure $callback)
 	{
 		$this->afterLoad[$namespace] = $callback;
-	}
-
-	/**
-	 * Determine if we should be assuming the configuration group.
-	 *
-	 * @param  array   $segments
-	 * @param  string  $group
-	 * @param  string  $namespace
-	 * @return bool
-	 */
-	protected function assumingGroup($segments, $group, $namespace)
-	{
-		return count($segments) == 1 and ! $this->loader->exists($group, $namespace);
 	}
 
 	/**
