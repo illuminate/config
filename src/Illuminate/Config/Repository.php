@@ -201,7 +201,7 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 		// of the namespace. Generally packages should use one type or another.
 		if ( ! $this->loader->exists($itemSegments[0], $namespace))
 		{
-			return array($namespace, $namespace, $item);
+			return array($namespace, 'config', $item);
 		}
 
 		return parent::parseNamespacedSegments($key);

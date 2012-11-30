@@ -73,7 +73,7 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 		$config->getLoader()->shouldReceive('cascadePackage')->andReturnUsing(function($env, $package, $group, $items) { return $items; });
 		$config->getLoader()->shouldReceive('exists')->once()->with('foo', 'namespace')->andReturn(false);
 		$config->getLoader()->shouldReceive('exists')->once()->with('baz', 'namespace')->andReturn(false);
-		$config->getLoader()->shouldReceive('load')->once()->with('production', 'namespace', 'namespace')->andReturn($options);
+		$config->getLoader()->shouldReceive('load')->once()->with('production', 'config', 'namespace')->andReturn($options);
 
 		$config->package('foo/namespace', __DIR__);
 		$this->assertEquals('bar', $config->get('namespace::foo'));
