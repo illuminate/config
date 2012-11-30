@@ -179,6 +179,28 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 		// a single file per package, otherwise we'll just parse them as normal.
 		if (in_array($namespace, $this->packages))
 		{
+			return $this->parsePackageSegments($key, $namespace, $item);
+		}
+
+		return parent::parseNamespacedSegments($key);
+	}
+
+	/**
+	 * Parse the segments of a package namespace.
+	 *
+	 * @param  string  $namespace
+	 * @param  string  $item
+	 * @return array
+	 */
+	protected function parsePackageSegments($key, $namespace, $item)
+	{
+		$itemSegments = explode('.', $item);
+
+		// If the configuration file doesn't exist for the given package group we can
+		// assume that we should implicitly use the config file matching the name
+		// of the namespace. Generally packages should use one type or another.
+		if ( ! $this->loader->exists($itemSegments[0], $namespace))
+		{
 			return array($namespace, $namespace, $item);
 		}
 
@@ -188,26 +210,47 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 	/**
 	 * Register a package for cascading configuration.
 	 *
-	 * @param  string  $name
+	 * @param  string  $package
+	 * @param  string  $hint
+	 * @param  string  $namespace
 	 * @return void
 	 */
-	public function package($name, $path)
+	public function package($package, $hint, $namespace = null)
 	{
-		list($vendor, $package) = explode('/', $name);
+		$namespace = $this->getPackageNamespace($package, $namespace);
 
-		$this->packages[] = $package;
+		$this->packages[] = $namespace;
 
 		// First we will simply register the namespace with the repository so that it
 		// can be loaded. Once we have done that we'll register an after namespace
 		// callback so that we can cascade an application package configuration.
-		$this->addNamespace($package, $path);
+		$this->addNamespace($namespace, $hint);
 
-		$this->afterLoading($package, function($me, $group, $items) use ($name)
+		$this->afterLoading($namespace, function($me, $group, $items) use ($package)
 		{
 			$env = $me->getEnvironment();
 
-			return $me->getLoader()->cascadePackage($env, $name, $items);
+			$loader = $me->getLoader();
+
+			return $loader->cascadePackage($env, $package, $group, $items);
 		});
+	}
+
+	/**
+	 * Get the configuration namespace for a package.
+	 *
+	 * @param  string  $package
+	 * @param  string  $namespace
+	 * @return string
+	 */
+	protected function getPackageNamespace($package, $namespace)
+	{
+		if (is_null($namespace))
+		{
+			list($vendor, $namespace) = explode('/', $package);
+		}
+
+		return $namespace;
 	}
 
 	/**

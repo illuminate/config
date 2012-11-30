@@ -65,12 +65,14 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 	}
 
 
-	public function testLoaderUsesNamespaceAsGroupWhenUsingPackages()
+	public function testLoaderUsesNamespaceAsGroupWhenUsingPackagesAndGroupDoesntExist()
 	{
 		$config = $this->getRepository();
 		$options = $this->getDummyOptions();
 		$config->getLoader()->shouldReceive('addNamespace')->with('namespace', __DIR__);
-		$config->getLoader()->shouldReceive('cascadePackage')->andReturnUsing(function($env, $name, $items) { return $items; });
+		$config->getLoader()->shouldReceive('cascadePackage')->andReturnUsing(function($env, $package, $group, $items) { return $items; });
+		$config->getLoader()->shouldReceive('exists')->once()->with('foo', 'namespace')->andReturn(false);
+		$config->getLoader()->shouldReceive('exists')->once()->with('baz', 'namespace')->andReturn(false);
 		$config->getLoader()->shouldReceive('load')->once()->with('production', 'namespace', 'namespace')->andReturn($options);
 
 		$config->package('foo/namespace', __DIR__);
@@ -101,10 +103,10 @@ class RepositoryTest extends PHPUnit_Framework_TestCase {
 	{
 		$config = $this->getMock('Illuminate\Config\Repository', array('addNamespace'), array(m::mock('Illuminate\Config\LoaderInterface'), 'production'));
 		$config->expects($this->once())->method('addNamespace')->with($this->equalTo('rees'), $this->equalTo(__DIR__));
-		$config->getLoader()->shouldReceive('cascadePackage')->once()->with('production', 'dayle/rees', array('foo'))->andReturn(array('bar'));
+		$config->getLoader()->shouldReceive('cascadePackage')->once()->with('production', 'dayle/rees', 'group', array('foo'))->andReturn(array('bar'));
 		$config->package('dayle/rees', __DIR__);
 		$afterLoad = $config->getAfterLoadCallbacks();
-		$results = call_user_func($afterLoad['rees'], $config, 'config', array('foo'));
+		$results = call_user_func($afterLoad['rees'], $config, 'group', array('foo'));
 
 		$this->assertEquals(array('bar'), $results);
 	}

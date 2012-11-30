@@ -35,9 +35,10 @@ interface LoaderInterface {
 	 *
 	 * @param  string  $environment
 	 * @param  string  $package
+	 * @param  string  $group
 	 * @param  array   $items
 	 * @return array
 	 */
-	public function cascadePackage($environment, $package, $items);
+	public function cascadePackage($environment, $package, $group, $items);
 
 }

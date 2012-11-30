@@ -70,7 +70,8 @@ class FileLoaderTest extends PHPUnit_Framework_TestCase {
 	{
 		$loader = $this->getLoader();
 		$loader->addNamespace('namespace', __DIR__.'/namespace');
-		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/namespace/app.php')->andReturn(false);
+		$loader->getFilesystem()->shouldReceive('exists')->with(__DIR__.'/namespace/app.php')->andReturn(false);
+		var_dump('here');
 		$this->assertFalse($loader->exists('app', 'namespace'));
 	}
 
@@ -78,11 +79,11 @@ class FileLoaderTest extends PHPUnit_Framework_TestCase {
 	public function testCascadingPackagesProperlyLoadsFiles()
 	{
 		$loader = $this->getLoader();
-		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/packages/dayle/rees.php')->andReturn(true);
-		$loader->getFilesystem()->shouldReceive('getRequire')->once()->with(__DIR__.'/packages/dayle/rees.php')->andReturn(array('bar' => 'baz'));
-		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/local/packages/dayle/rees.php')->andReturn(true);
-		$loader->getFilesystem()->shouldReceive('getRequire')->once()->with(__DIR__.'/local/packages/dayle/rees.php')->andReturn(array('foo' => 'boom'));
-		$items = $loader->cascadePackage('local', 'dayle/rees', array('foo' => 'bar'));
+		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/packages/dayle/rees/group.php')->andReturn(true);
+		$loader->getFilesystem()->shouldReceive('getRequire')->once()->with(__DIR__.'/packages/dayle/rees/group.php')->andReturn(array('bar' => 'baz'));
+		$loader->getFilesystem()->shouldReceive('exists')->once()->with(__DIR__.'/local/packages/dayle/rees/group.php')->andReturn(true);
+		$loader->getFilesystem()->shouldReceive('getRequire')->once()->with(__DIR__.'/local/packages/dayle/rees/group.php')->andReturn(array('foo' => 'boom'));
+		$items = $loader->cascadePackage('local', 'dayle/rees', 'group', array('foo' => 'bar'));
 
 		$this->assertEquals(array('foo' => 'boom', 'bar' => 'baz'), $items);
 	}
