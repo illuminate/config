@@ -71,7 +71,6 @@ class FileLoaderTest extends PHPUnit_Framework_TestCase {
 		$loader = $this->getLoader();
 		$loader->addNamespace('namespace', __DIR__.'/namespace');
 		$loader->getFilesystem()->shouldReceive('exists')->with(__DIR__.'/namespace/app.php')->andReturn(false);
-		var_dump('here');
 		$this->assertFalse($loader->exists('app', 'namespace'));
 	}
 
