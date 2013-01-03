@@ -274,7 +274,9 @@ class Repository extends NamespacedItemResolver implements ArrayAccess {
 	 */
 	protected function getCollection($group, $namespace = null)
 	{
-		return $namespace ?: '*'.'::'.$group;
+		$namespace = $namespace ?: '*';
+
+		return $namespace.'::'.$group;
 	}
 
 	/**
